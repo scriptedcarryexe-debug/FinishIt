@@ -1,0 +1,46 @@
+name: Enrichissement agences (Searlo)
+
+on:
+  workflow_dispatch:
+    inputs:
+      max_requests:
+        description: "Nombre max de requêtes (0 = tout, ex: 10 pour tester)"
+        default: "0"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: agences
+  cancel-in-progress: false
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 350
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - run: pip install requests
+
+      - name: Lancer l'extraction
+        env:
+          SEARLO_KEY_1: ${{ secrets.SEARLO_KEY_1 }}
+          SEARLO_KEY_2: ${{ secrets.SEARLO_KEY_2 }}
+          SEARLO_KEY_3: ${{ secrets.SEARLO_KEY_3 }}
+          MAX_REQUESTS: ${{ inputs.max_requests }}
+        run: python searlo_agences.py
+
+      - name: Sauvegarder les résultats
+        if: always()
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add agences.csv searlo_state.json rapport.txt
+          git diff --cached --quiet || git commit -m "chore: mise à jour agences ($(date -u +%F\ %H:%M))"
+          git pull --rebase || true
+          git push
