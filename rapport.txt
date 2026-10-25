@@ -1,0 +1,23 @@
+=== COMPTE RENDU ===
+Lignes dans le CSV source        : 7503
+  - lignes invalides (siren/nom) : 0
+  - doublons de siren (ignorés)  : 0
+Siren uniques                    : 7503
+Déjà traités avant ce run        : 0
+
+Requêtes envoyées ce run         : 10
+  - siren avec 2 résultats       : 3
+  - siren avec 1 résultat        : 7
+  - siren sans résultat          : 0
+  - réponses > 2 résultats (coupées à 2) : 0
+Doublons supprimés (siren+lieu)  : 0
+Lieux partagés entre plusieurs siren (gardés, à vérifier) : 0
+Erreurs (seront réessayées)      : 0
+
+Crédits Searlo :
+  - SEARLO_KEY_1 : 10/3000 utilisés (+10 ce run), reste 2990
+  - SEARLO_KEY_2 : 0/3000 utilisés (+0 ce run), reste 3000
+  - SEARLO_KEY_3 : 0/2900 utilisés (+0 ce run), reste 2900
+
+Siren restant à traiter          : 7493
+↻ Relancer le workflow pour continuer (reprise automatique).
