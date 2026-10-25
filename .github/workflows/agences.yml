@@ -33,6 +33,7 @@ jobs:
           SEARLO_KEY_2: ${{ secrets.SEARLO_KEY_2 }}
           SEARLO_KEY_3: ${{ secrets.SEARLO_KEY_3 }}
           MAX_REQUESTS: ${{ inputs.max_requests }}
+          PYTHONUNBUFFERED: "1"
         run: python searlo_agences.py
 
       - name: Sauvegarder les résultats
@@ -44,3 +45,4 @@ jobs:
           git diff --cached --quiet || git commit -m "chore: mise à jour agences ($(date -u +%F\ %H:%M))"
           git pull --rebase || true
           git push
+          
