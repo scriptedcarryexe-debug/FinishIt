@@ -53,6 +53,8 @@ DAY_ORDER = ["lundi", "mardi", "mercredi", "jeudi", "vendredi", "samedi", "diman
 SAVE_EVERY = 10
 REQUEST_TIMEOUT = 30
 MAX_RETRIES = 3
+MAX_RETRIES_429 = 6
+MAX_CONSECUTIVE_ERRORS = 15   # arrêt propre si l'API ne répond plus du tout
 PAUSE_BETWEEN_REQUESTS = 0.2
 
 
@@ -132,7 +134,7 @@ def load_state():
         st = {}
     st.setdefault("done", {})                      # siren -> nombre de résultats gardés
     st.setdefault("credits_used", {k: 0 for k, _ in KEYS})
-    st.setdefault("exhausted", [])                 # clés marquées épuisées / invalides
+    st["exhausted"] = []                           # jamais conservé d'un run à l'autre
     for k, _ in KEYS:
         st["credits_used"].setdefault(k, 0)
     return st
@@ -175,10 +177,10 @@ class KeyManager:
     def add_usage(self, key, credits):
         self.state["credits_used"][key["env"]] += credits
 
-    def mark_exhausted(self, key):
+    def mark_exhausted(self, key, reason=""):
         if key["env"] not in self.state["exhausted"]:
             self.state["exhausted"].append(key["env"])
-        print(f"🔑 {key['env']} marquée épuisée/invalide, passage à la suivante")
+        print(f"🔑 {key['env']} écartée pour ce run ({reason}), passage à la suivante")
 
 
 # --------------------------------------------------------------------------- appel API
@@ -207,18 +209,34 @@ def search_place(km: KeyManager, nom: str, adresse: str):
             km.add_usage(key, credits)
             return places, len(places), credits
 
-        body = r.text[:300].lower()
-        quota_msg = any(w in body for w in ("credit", "crédit", "quota", "limit"))
-        if r.status_code in (401, 402, 403) or (r.status_code == 429 and quota_msg):
-            km.mark_exhausted(key)       # clé invalide ou plus de crédits -> clé suivante
+        body = r.text[:300]
+        low = body.lower()
+        no_credit = any(w in low for w in ("insufficient", "out of credit", "no credit",
+                                            "no more credit", "credits exhausted", "crédits"))
+        if r.status_code == 402 or (r.status_code in (403, 429) and no_credit):
+            km.mark_exhausted(key, f"HTTP {r.status_code} plus de crédits: {body[:120]}")
+            attempt = 0
             continue
-        if r.status_code == 429 or r.status_code >= 500:
+        if r.status_code in (401, 403):
+            km.mark_exhausted(key, f"HTTP {r.status_code} clé refusée: {body[:120]}")
+            attempt = 0
+            continue
+        if r.status_code == 429:                       # trop de requêtes : on attend, la clé reste valide
+            attempt += 1
+            if attempt >= MAX_RETRIES_429:
+                raise RuntimeError(f"HTTP 429 persistant: {body[:120]}")
+            wait = r.headers.get("Retry-After", "")
+            wait = float(wait) if wait.replace(".", "", 1).isdigit() else min(5 * 2 ** attempt, 60)
+            print(f"⏳ 429 (rate limit), pause {wait:.0f}s: {body[:100]}")
+            time.sleep(wait)
+            continue
+        if r.status_code >= 500:
             attempt += 1
             if attempt >= MAX_RETRIES:
                 raise RuntimeError(f"HTTP {r.status_code}")
             time.sleep(5 * attempt)
             continue
-        raise RuntimeError(f"HTTP {r.status_code}: {r.text[:150]}")
+        raise RuntimeError(f"HTTP {r.status_code}: {body[:150]}")
 
 
 # --------------------------------------------------------------------------- main
@@ -265,6 +283,7 @@ def main():
     print(f"▶ {len(inputs)} siren | déjà traités : {stats['deja_traites']} | à traiter ce run : {len(todo)}")
 
     errors, not_found, truncated, stop_reason = [], [], [], None
+    consecutive_errors = 0
 
     out = open(OUTPUT_CSV, "a", newline="", encoding="utf-8-sig" if new_file else "utf-8")
     writer = csv.DictWriter(out, fieldnames=OUT_FIELDS, delimiter=";")
@@ -282,7 +301,12 @@ def main():
             except Exception as e:  # noqa: BLE001
                 errors.append((siren, item["nom"], str(e)))
                 stats["erreurs"] += 1
+                consecutive_errors += 1
+                if consecutive_errors >= MAX_CONSECUTIVE_ERRORS:
+                    stop_reason = f"{MAX_CONSECUTIVE_ERRORS} erreurs consécutives (dernière : {e})"
+                    break
                 continue  # pas marqué "done" -> réessayé au prochain run
+            consecutive_errors = 0
 
             stats["requetes"] += 1
 
@@ -350,7 +374,7 @@ def write_report(stats, state, credits_start, errors, not_found, truncated, plac
     for env, quota in KEYS:
         used = state["credits_used"][env]
         run = used - credits_start.get(env, 0)
-        flag = " (épuisée/invalide)" if env in state["exhausted"] else ""
+        flag = " (écartée ce run : voir logs)" if env in state["exhausted"] else ""
         lines.append(f"  - {env} : {used}/{quota} utilisés (+{run} ce run), reste {max(quota - used, 0)}{flag}")
     lines += ["", f"Siren restant à traiter          : {restant}"]
     if stop_reason:
@@ -386,3 +410,4 @@ def write_report(stats, state, credits_start, errors, not_found, truncated, plac
 
 if __name__ == "__main__":
     main()
+      
