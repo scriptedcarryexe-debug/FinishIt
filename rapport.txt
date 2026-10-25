@@ -3,21 +3,70 @@ Lignes dans le CSV source        : 7503
   - lignes invalides (siren/nom) : 0
   - doublons de siren (ignorés)  : 0
 Siren uniques                    : 7503
-Déjà traités avant ce run        : 0
+Déjà traités avant ce run        : 10
 
-Requêtes envoyées ce run         : 10
-  - siren avec 2 résultats       : 3
-  - siren avec 1 résultat        : 7
-  - siren sans résultat          : 0
-  - réponses > 2 résultats (coupées à 2) : 0
+Requêtes envoyées ce run         : 504
+  - siren avec 2 résultats       : 77
+  - siren avec 1 résultat        : 426
+  - siren sans résultat          : 1
+  - réponses > 2 résultats (coupées à 2) : 36
 Doublons supprimés (siren+lieu)  : 0
-Lieux partagés entre plusieurs siren (gardés, à vérifier) : 0
+Lieux partagés entre plusieurs siren (gardés, à vérifier) : 6
 Erreurs (seront réessayées)      : 0
 
 Crédits Searlo :
-  - SEARLO_KEY_1 : 10/3000 utilisés (+10 ce run), reste 2990
-  - SEARLO_KEY_2 : 0/3000 utilisés (+0 ce run), reste 3000
-  - SEARLO_KEY_3 : 0/2900 utilisés (+0 ce run), reste 2900
+  - SEARLO_KEY_1 : 168/3000 utilisés (+158 ce run), reste 2832 (épuisée/invalide)
+  - SEARLO_KEY_2 : 283/3000 utilisés (+283 ce run), reste 2717 (épuisée/invalide)
+  - SEARLO_KEY_3 : 63/2900 utilisés (+63 ce run), reste 2837 (épuisée/invalide)
 
-Siren restant à traiter          : 7493
-↻ Relancer le workflow pour continuer (reprise automatique).
+Siren restant à traiter          : 6989
+⛔ Arrêt anticipé : toutes les clés Searlo sont épuisées
+
+--- Réponses > 2 résultats (siren, nom, nb) ---
+935004366;20/21 Immobilier;3
+538552514;2S & CO Immo et Conseil;4
+933562233;3% IMMO;9
+977711597;360 TRANSACTIONS;20
+505020669;3R-33;4
+532136660;A E;6
+753360213;A Immobilier;6
+991620170;A&B TRANSACTIONS;20
+901197020;A.F.P.V. Promotion & Transaction;8
+330098120;A.R. IMMO SOCIAL LOCATION;3
+393739644;AB REAL ESTATE;11
+498069095;ABM IMMO;3
+995093051;ABRIHOME;11
+753812064;ACE COURTAGE;3
+521933697;ACGP;3
+835250713;ACHAT - PROPRIETE;7
+898847983;Achetez Neuf Immo;5
+529916298;ACTISSIMMO;3
+942877705;ACTISUD;5
+901872622;ACTUEL IMMO;5
+452562408;ADC IMMOBILIER;5
+824406573;ADM;12
+315903344;ADMIN IMMOBILIERE ANNECIENNE 2;4
+310863592;ADOMIA RESIDENCES;8
+878178482;ADRIA Immobilier;11
+899365811;ADYA immobilier;5
+853299469;AF Immobilier;3
+305178246;AGENCE ACAPULCO;3
+410725485;AGENCE AIGUES MORTES IMMOBILIER;8
+909343451;AGENCE AIR 'UP;4
+800705014;Agence ANGELI;4
+940995285;AGENCE AQUILA;3
+518176722;AGENCE ARDECHE SUD IMMOBILIER;3
+844719476;AGENCE ARNAUD et ASSOCIES;3
+325820470;Agence ATHERAC - Transaction;3
+751978651;AGENCE AUGUSTE;5
+
+--- Lieux (featureId) partagés entre plusieurs siren ---
+0x4808791b9975cb0f:0x14ad5cc0917d6ba4 -> 899365811, 930679352
+0x47f44d72971bf17f:0x4e862c8dca989372 -> 825246770, 990804999
+0x4793afd61e9296db:0x5f3d4ce818347488 -> 443773171, 817607856
+0x4793af254136e1b7:0xe186ef5bee6dca9a -> 443773171, 817607856
+0x12b6af9a57ed1877:0xcc61e22534f957ae -> 450488069, 940995285
+0x48015325cba9514d:0xc9f3937ddbf94f3c -> 882633225, 983261108
+
+--- Siren sans résultat (siren;nom;adresse) ---
+901564203;A LA BONNE PORTE;99 AVENUE PICASSO 13480 Cabriès
