@@ -241,6 +241,7 @@ def search_place(km: KeyManager, nom: str, adresse: str):
 
 # --------------------------------------------------------------------------- main
 def main():
+    sys.stdout.reconfigure(line_buffering=True)   # logs visibles en direct dans GitHub Actions
     rows_in = read_input()
     stats = Counter()
     stats["lignes_csv"] = len(rows_in)
@@ -338,8 +339,8 @@ def main():
 
             if i % SAVE_EVERY == 0:
                 save_state(state)
-            if i % 100 == 0:
-                print(f"  … {i}/{len(todo)}")
+            if i == 1 or i % 25 == 0:
+                print(f"  … {i}/{len(todo)} (dernier : {item['nom']} -> {kept} résultat(s))")
             time.sleep(PAUSE_BETWEEN_REQUESTS)
     finally:
         out.close()
@@ -410,4 +411,4 @@ def write_report(stats, state, credits_start, errors, not_found, truncated, plac
 
 if __name__ == "__main__":
     main()
-      
+          
